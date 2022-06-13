@@ -21,33 +21,25 @@ public:
         }
       }
     }
-    
-    // 내적 연산
-    static float dot(const Vector2D& v1, const Vector2D& v2)
-    {
-      Vector2D vn1 = v1;
-      vn1.normalize();
-      Vector2D vn2 = v2;
-      vn2.normalize();
-
-      float vn = vn1.m_x * vn2.m_x + vn1.m_y + vn2.m_y;
-      
-      return vn;
-    }
-
-    static float cross(const Vector2D& v1, const Vector2D& v2)
-    {
-      Vector2D vn1 = v1;
-      vn1.normalize();
-      Vector2D vn2 = v2;
-      vn2.normalize();
-
-      float vn = vn1.m_x * vn2.m_y - vn2.m_x * vn1.m_y;
-
-      return vn;
-    }
 
     float length() { return sqrt(m_x * m_x + m_y * m_y); }
+    float lengthSqr() { return m_x * m_x + m_y * m_y; }
+
+    Vector2D Normalized()
+    {
+        float l = length();
+        if (l > 0)
+        {
+            return Vector2D((*this).m_x / l, (*this).m_y / l);
+        }
+
+        return Vector2D(0, 0);
+    }
+
+    Vector2D Rotate(float radian)
+    {
+        return Vector2D((*this).m_x * cos(radian) - (*this).m_y * sin(radian), (*this).m_x * sin(radian) + (*this).m_y * cos(radian));
+    }
 
     Vector2D operator+(const Vector2D& v2) const
     {

@@ -4,109 +4,117 @@
 #include "Game.h"
 #include "InputHandler.h"
 
+#include "Obstacle.h"
 #include "Walker.h"
 
 Game* Game::s_pInstance = 0;
 
 bool Game::setup()
 {
-  bool result;
+	bool result;
 
-  result = init("Nature of Code", 0, 0, WIDTH, HEIGHT, false);
+	result = init("Nature of Code", 100, 100, WIDTH, HEIGHT, false);
 
-  _walker = new Walker(WIDTH/2,HEIGHT/2);
+	_hider = new Walker(WIDTH / 2, HEIGHT / 2);
+	_walker = new Walker(WIDTH / 2, HEIGHT / 2);
 
+	obstacles.reserve(10);
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			obstacles.push_back(new Obstacle((j + 1) * 100, (i + 1) * 100, 20));
+		}
+	}
 
-  return result;
+	return result;
 }
 
 void Game::update()
 {
-  _walker->update();
+	_hider->applyForce(_hider->hide(obstacles, _walker));
+	_hider->update();
 
-  SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+	_walker->applyForce(_walker->obstacleAvoidance(obstacles));
+	_walker->update();
+	_walker->edges();
+
+	SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
 }
-      
+
 void Game::render()
 {
-  SDL_RenderClear(m_pRenderer);  
+	SDL_RenderClear(m_pRenderer);
 
-  _walker->draw(m_pRenderer);
+	for (const auto& o : obstacles)
+	{
+		o->draw(m_pRenderer);
+	}
 
-  
-  SDL_RenderPresent(m_pRenderer); 
+	_hider->draw(m_pRenderer);
+	_walker->draw(m_pRenderer);
 
-
-  // ?¬ê°??ê·¸ë¦¬ê¸?
-  /*
-
-  SDL_Rect rect[2];
-  rect[0].x = 250;
-  rect[0].y = 150;
-  rect[0].w = 200;
-  rect[0].h = 200;
-
-  rect[1].x = 50;
-  rect[1].y = 150;
-  rect[1].w = 200;
-  rect[1].h = 200;
-
-
-  SDL_RenderDrawRects(renderer, rect,2);
-  */
+	SDL_RenderPresent(m_pRenderer);
 }
 
-void Game::clean() 
+void Game::clean()
 {
-  delete _walker;
-  
-  TheInputHandler::Instance()->clean();
-  
-  SDL_DestroyWindow(m_pWindow);
-  SDL_DestroyRenderer(m_pRenderer);
+	delete _hider;
+	delete _walker;
 
-  m_pWindow = NULL;
-  m_pRenderer = NULL;
+	for (const auto& o : obstacles)
+	{
+		delete o;
+	}
+	obstacles.clear();
 
-  SDL_Quit();
+	TheInputHandler::Instance()->clean();
+
+	SDL_DestroyWindow(m_pWindow);
+	SDL_DestroyRenderer(m_pRenderer);
+
+	m_pWindow = NULL;
+	m_pRenderer = NULL;
+
+	SDL_Quit();
 }
 
 //==================================================
 
-bool Game::init(const char *title, int xpos, int ypos, int width, int height, int flags) 
+bool Game::init(const char* title, int xpos, int ypos, int width, int height, int flags)
 {
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) 
-  {
-    return false;
-  }
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	{
+		return false;
+	}
 
-  m_pWindow = SDL_CreateWindow(title, xpos, ypos, width, height, SDL_WINDOW_OPENGL);
-  
-  if (m_pWindow != NULL ) 
-  {
-    m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, SDL_RENDERER_ACCELERATED);
-    
-    SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255); 
-    SDL_RenderClear(m_pRenderer);
-  } 
-  else 
-  {
-    return false; // ?ˆë„???ì„¤ ?¤íŒ¨ l
-  }
-  
-  m_bRunning = true;
-  
-  SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+	m_pWindow = SDL_CreateWindow(title, xpos, ypos, width, height, SDL_WINDOW_OPENGL);
 
-  return true;
+	if (m_pWindow != NULL)
+	{
+		m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, SDL_RENDERER_ACCELERATED);
+
+		SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+		SDL_RenderClear(m_pRenderer);
+	}
+	else
+	{
+		return false; // ?ˆë„???ì„¤ ?¤íŒ¨ l
+	}
+
+	m_bRunning = true;
+
+	SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
+
+	return true;
 }
 
 bool Game::running()
-{ 
-  return m_bRunning; 
+{
+	return m_bRunning;
 }
 
-void Game::handleEvents() 
+void Game::handleEvents()
 {
-  TheInputHandler::Instance()->update();
+	TheInputHandler::Instance()->update();
 }

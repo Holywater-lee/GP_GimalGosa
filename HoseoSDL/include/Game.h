@@ -4,7 +4,7 @@
 
 #include <vector>
 
-
+class Obstacle;
 class Walker;
 class Vector2D;
 
@@ -42,6 +42,8 @@ private:
 
     Vector2D* _mousePos;
     Walker* _walker;
+    Walker* _hider;
+    std::vector<Obstacle*> obstacles;
 
     SDL_Texture* mTexture;
     SDL_Rect _srcRect;
